@@ -38,7 +38,7 @@ export default function UtangPage() {
   const [toast, setToast] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [itemForm, setItemForm] = useState({ amount: '', notes: '' })
-  const [payment, setPayment] = useState({ amount: '', method: 'cash', gcash_ref: '' })
+  const [payment, setPayment] = useState({ amount: '', tendered: '', method: 'cash', gcash_ref: '' })
 
   useEffect(() => { loadData() }, [])
   useEffect(() => {
@@ -106,7 +106,9 @@ export default function UtangPage() {
   async function handlePayment() {
     if (!selectedUtang || !payment.amount) { showToast('⚠️ Enter payment amount!'); return }
     const amt = parseFloat(payment.amount)
+    const tendered = parseFloat(payment.tendered) || amt
     if (amt > selectedUtang.balance) { showToast('⚠️ Payment exceeds balance!'); return }
+    if (tendered < amt) { showToast('⚠️ Amount tendered is less than payment!'); return }
     const newPaid = selectedUtang.paid_amount + amt
     const status = newPaid >= selectedUtang.total_amount ? 'paid' : newPaid > 0 ? 'partial' : 'unpaid'
     const { error } = await supabase.from('utang_payments').insert({
@@ -118,7 +120,7 @@ export default function UtangPage() {
     if (error) { showToast('❌ Error recording payment'); return }
     await supabase.from('utang').update({ paid_amount: newPaid, status }).eq('id', selectedUtang.id)
     showToast('✅ Payment recorded!')
-    setPayment({ amount: '', method: 'cash', gcash_ref: '' })
+    setPayment({ amount: '', tendered: '', method: 'cash', gcash_ref: '' })
     setShowPayment(false)
     loadData()
   }
@@ -391,13 +393,22 @@ export default function UtangPage() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT *</label>
+                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>PAYMENT AMOUNT *</label>
                 <input type="number" placeholder="0.00" value={payment.amount} onChange={e => setPayment(p => ({ ...p, amount: e.target.value }))} autoFocus
                   style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
                 {payment.amount && parseFloat(payment.amount) > 0 && (
                   <p style={{ fontSize: '12px', color: '#7aaa7a', margin: '6px 0 0', fontWeight: 600 }}>
-                    Remaining: ₱{Math.max(0, selectedUtang.balance - parseFloat(payment.amount)).toFixed(2)}
+                    Remaining after: ₱{Math.max(0, selectedUtang.balance - parseFloat(payment.amount)).toFixed(2)}
                   </p>
+                )}
+              <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px', marginTop: '10px' }}>AMOUNT TENDERED</label>
+                <input type="number" placeholder="Leave blank if exact" value={payment.tendered} onChange={e => setPayment(p => ({ ...p, tendered: e.target.value }))}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
+                {payment.tendered && payment.amount && parseFloat(payment.tendered) >= parseFloat(payment.amount) && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#f0f9f0', borderRadius: '10px' }}>
+                    <span style={{ fontSize: '13px', color: '#7aaa7a', fontWeight: 600 }}>Change</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#7aaa7a' }}>₱{(parseFloat(payment.tendered) - parseFloat(payment.amount)).toFixed(2)}</span>
+                  </div>
                 )}
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -417,7 +428,7 @@ export default function UtangPage() {
               )}
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-              <button onClick={() => { setShowPayment(false); setPayment({ amount: '', method: 'cash', gcash_ref: '' }) }}
+              <button onClick={() => { setShowPayment(false); setPayment({ amount: '', tendered: '', method: 'cash', gcash_ref: '' }) }}
                 style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', backgroundColor: '#f5f0ee', color: '#9e8585', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handlePayment}
                 style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>✅ Confirm</button>

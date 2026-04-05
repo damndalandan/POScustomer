@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useCartStore } from '@/store/cartStore'
@@ -69,8 +69,13 @@ export default function POSPage() {
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
+  const addingRef = useRef<string | null>(null)
+
   function addToCart(product: Product) {
     if (product.stock <= 0) { showToast('⚠️ Out of stock!'); return }
+    if (addingRef.current === product.id) return
+    addingRef.current = product.id
+    setTimeout(() => { addingRef.current = null }, 500)
     addItem({ product_id: product.id, product_name: product.name, barcode: product.barcode, quantity: 1, buying_price: product.buying_price, selling_price: product.selling_price, subtotal: product.selling_price })
     showToast(`✅ ${product.name} added!`)
   }
@@ -112,11 +117,30 @@ export default function POSPage() {
         const { data: txn, error } = await supabase.from('transactions').insert(transaction).select().single()
         if (error) throw error
         await supabase.from('transaction_items').insert(txnItems.map(i => ({ ...i, transaction_id: txn.id })))
-        if (payment_method === 'gcash' && gcash_reference) {
+        if (posPaymentMethod === 'gcash' && gcash_reference) {
           await supabase.from('gcash_references').insert({ transaction_id: txn.id, reference_number: gcash_reference, amount: subtotal })
         }
         for (const item of items) {
           await supabase.rpc('decrement_stock', { p_product_id: item.product_id, p_quantity: item.quantity })
+        }
+        // Handle utang
+        if (posPaymentMethod === 'utang' && customerName.trim()) {
+          const { data: existingUtang } = await supabase
+            .from('utang').select('*').ilike('customer_name', customerName.trim()).single()
+          if (existingUtang) {
+            const newTotal = existingUtang.total_amount + subtotal
+            const newStatus = existingUtang.paid_amount >= newTotal ? 'paid' : existingUtang.paid_amount > 0 ? 'partial' : 'unpaid'
+            await supabase.from('utang').update({ total_amount: newTotal, status: newStatus }).eq('id', existingUtang.id)
+            await supabase.from('utang_items').insert({ utang_id: existingUtang.id, amount: subtotal, notes: `POS - ${txnNumber}` })
+          } else {
+            const { data: newUtang } = await supabase.from('utang').insert({
+              customer_name: customerName.trim(), total_amount: subtotal,
+              paid_amount: 0, balance: subtotal, status: 'unpaid', created_by: user?.id || null,
+            }).select().single()
+            if (newUtang) {
+              await supabase.from('utang_items').insert({ utang_id: newUtang.id, amount: subtotal, notes: `POS - ${txnNumber}` })
+            }
+          }
         }
       } else {
         await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: payment_method === 'gcash' ? gcash_reference : undefined })
@@ -128,9 +152,9 @@ export default function POSPage() {
         items: items.map(i => ({ product_name: i.product_name, quantity: i.quantity, selling_price: i.selling_price, subtotal: i.subtotal })),
         subtotal,
         payment_method,
-        amount_tendered: payment_method === 'cash' ? amount_tendered : subtotal,
-        change_amount: payment_method === 'cash' ? change : 0,
-        gcash_reference: payment_method === 'gcash' ? gcash_reference : undefined,
+        amount_tendered: amount_tendered > 0 ? amount_tendered : subtotal,
+        change_amount: posPaymentMethod === 'cash' ? change : 0,
+        gcash_reference: posPaymentMethod === 'gcash' ? gcash_reference : undefined,
         served_by: user?.full_name || user?.username || 'Cashier',
         customer_name: customerName || undefined,
         date: new Date().toLocaleString('en-PH'),
@@ -238,7 +262,7 @@ export default function POSPage() {
             ) : viewMode === 'grid' ? (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }}>
                 {filtered.map(product => (
-                  <button key={product.id} onClick={() => addToCart(product)} disabled={product.stock <= 0}
+                  <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={product.stock <= 0}
                     style={{ backgroundColor: '#f9f6f5', border: '1.5px solid #e8ddd9', borderRadius: '12px', padding: '12px 10px', textAlign: 'left', cursor: product.stock <= 0 ? 'not-allowed' : 'pointer', opacity: product.stock <= 0 ? 0.5 : 1, display: 'flex', flexDirection: 'column', gap: '6px' }}
                     onMouseEnter={e => { if (product.stock > 0) (e.currentTarget as HTMLButtonElement).style.borderColor = '#b08a8a' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e8ddd9' }}>
@@ -256,7 +280,7 @@ export default function POSPage() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {filtered.map(product => (
-                  <button key={product.id} onClick={() => addToCart(product)} disabled={product.stock <= 0}
+                  <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={product.stock <= 0}
                     style={{ backgroundColor: '#f9f6f5', border: '1.5px solid #e8ddd9', borderRadius: '10px', padding: '10px 12px', cursor: product.stock <= 0 ? 'not-allowed' : 'pointer', opacity: product.stock <= 0 ? 0.5 : 1, display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}
                     onMouseEnter={e => { if (product.stock > 0) (e.currentTarget as HTMLButtonElement).style.borderColor = '#b08a8a' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e8ddd9' }}>
