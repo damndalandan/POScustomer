@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f5f0ee;
+  --foreground: #3d2c2c;
+  --card: #ffffff;
+  --primary: #b08a8a;
+  --primary-dark: #8f6b6b;
+  --primary-light: #e8d5d0;
+  --secondary: #d4bfbb;
+  --accent: #c4a09a;
+  --muted: #9e8585;
+  --border: #e8ddd9;
+  --success: #8faa8f;
+  --warning: #c4aa7a;
+  --danger: #c47a7a;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4bfbb; border-radius: 4px; }
+/* Print styles for receipt */
+@media print {
+  body * { visibility: hidden; }
+  #receipt-content, #receipt-content * { visibility: visible; }
+  #receipt-content { position: fixed; left: 0; top: 0; width: 80mm; }
+  @page { size: 80mm auto; margin: 0; }
 }
