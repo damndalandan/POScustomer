@@ -177,10 +177,10 @@ export default function POSPage() {
       {scanning && <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setScanning(false)} />}
 
       {/* Three containers */}
-      <div style={{ flex: 1, display: 'flex', gap: '10px', padding: '0 12px 12px', overflow: 'hidden' }}>
+      <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Categories */}
-        <div style={{ width: '110px', flexShrink: 0, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="w-full md:w-[110px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 12px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>CATEGORIES</p>
           </div>

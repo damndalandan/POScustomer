@@ -111,10 +111,10 @@ function RefundsPage() {
         </div>
       )}
 
-      <div style={{ flex: 1, display: 'flex', gap: '10px', padding: '12px', overflow: 'hidden' }}>
+      <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Transactions */}
-        <div style={{ width: '260px', flexShrink: 0, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="w-full md:w-[260px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '13px', fontWeight: 700, color: '#3d2c2c', margin: '0 0 8px' }}>Recent Transactions</p>
             <input type="text" placeholder="🔍 Search TXN number..." value={search} onChange={e => setSearch(e.target.value)}
