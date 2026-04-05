@@ -123,7 +123,7 @@ export default function DashboardPage() {
 
           {/* TODAY */}
           <p style={{ fontSize: '10px', letterSpacing: '2px', color: '#9e8585', textTransform: 'uppercase', margin: '0 0 10px' }}>TODAY</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '12px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '12px' }}>
             {[
               { label: "Today's Sales", value: `₱${metrics.todaySales.toFixed(2)}`, sub: `${metrics.todayTransactions} transactions`, color: '#b08a8a', bg: '#fdf5f3', icon: '💰' },
               { label: 'Cash Sales', value: `₱${metrics.todayCash.toFixed(2)}`, sub: 'Cash payments', color: '#7aaa7a', bg: '#f3faf3', icon: '💵' },
@@ -158,7 +158,7 @@ export default function DashboardPage() {
 
           {/* PERIOD */}
           <p style={{ fontSize: '10px', letterSpacing: '2px', color: '#9e8585', textTransform: 'uppercase', margin: '0 0 10px' }}>PERIOD</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '16px' }}>
             <div style={{ backgroundColor: '#fff', borderRadius: '14px', padding: '14px', border: '1px solid #e8ddd9' }}>
               <p style={{ fontSize: '10px', color: '#9e8585', margin: 0, letterSpacing: '1px' }}>THIS WEEK</p>
               <p style={{ fontSize: '18px', fontWeight: 700, color: '#b08a8a', margin: '4px 0 0' }}>₱{metrics.weekSales.toFixed(2)}</p>
@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
           {/* STORE STATUS */}
           <p style={{ fontSize: '10px', letterSpacing: '2px', color: '#9e8585', textTransform: 'uppercase', margin: '0 0 10px' }}>STORE STATUS</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '16px' }}>
             <div onClick={() => router.push('/utang')}
               style={{ backgroundColor: metrics.totalUtang > 0 ? '#fdf0f0' : '#f3faf3', borderRadius: '14px', padding: '14px', border: '1px solid #e8ddd9', cursor: 'pointer' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
