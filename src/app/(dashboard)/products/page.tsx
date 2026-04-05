@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Product, Category } from '@/types'
 import BarcodeScanner from '@/components/BarcodeScanner'
@@ -101,6 +101,15 @@ function ProductsPage() {
     setEditProduct(null)
     setForm({ barcode: '', name: '', category_id: selectedCategory !== 'all' ? selectedCategory : '', buying_price: '', selling_price: '', stock: '', low_stock_threshold: '5', expiry_date: '' })
     setShowProductForm(true)
+  }
+
+  const modalActionRef = useRef<boolean>(false)
+
+  function safeModalAction(fn: () => void) {
+    if (modalActionRef.current) return
+    modalActionRef.current = true
+    setTimeout(() => { modalActionRef.current = false }, 500)
+    fn()
   }
 
   function openEditProduct(product: Product) {
@@ -387,7 +396,7 @@ function ProductsPage() {
                   {product.stock <= 0 ? 'Out' : `${product.stock} pcs`}
                 </span>
                 <div style={{ display: 'flex', gap: '3px', flexWrap: 'nowrap' }}>
-                  <button onClick={() => openEditProduct(product)}
+                  <button onPointerDown={e => { e.preventDefault(); safeModalAction(() => openEditProduct(product)) }}
                     style={{ padding: '4px 8px', borderRadius: '6px', border: 'none', backgroundColor: '#e8d5d0', color: '#b08a8a', fontSize: '10px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                     Edit
                   </button>
@@ -445,11 +454,11 @@ function ProductsPage() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-              <button onClick={() => setShowProductForm(false)}
+              <button onPointerDown={e => { e.preventDefault(); safeModalAction(() => setShowProductForm(false)) }}
                 style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', backgroundColor: '#f5f0ee', color: '#9e8585', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button onClick={handleSaveProduct}
+              <button onPointerDown={e => { e.preventDefault(); safeModalAction(() => handleSaveProduct()) }}
                 style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
                 {editProduct ? 'Save Changes' : 'Add Product'}
               </button>
