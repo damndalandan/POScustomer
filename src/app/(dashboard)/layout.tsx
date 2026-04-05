@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{
-      height: '100vh',
+      height: '100dvh', // Use dvh (dynamic viewport height) to fix mobile browser bar clipping
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: '#f5f0ee',
@@ -157,6 +157,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         backgroundColor: '#fff',
         zIndex: 10,
         display: 'flex',
+        overflowX: 'auto', // Allow scrolling on small screens with many tabs
+        paddingBottom: 'env(safe-area-inset-bottom)', // Safe area for iOS
       }}>
         {visibleNav.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
@@ -165,7 +167,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               key={item.href}
               onClick={() => router.push(item.href)}
               style={{
-                flex: 1,
+                flex: '1 0 auto', // Prevent squishing
+                minWidth: '60px', // Ensure buttons are touchable size
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
