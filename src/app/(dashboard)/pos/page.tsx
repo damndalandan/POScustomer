@@ -180,7 +180,7 @@ export default function POSPage() {
       <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Categories */}
-        <div className="w-full md:w-[110px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="hidden md:flex w-full md:w-[110px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 12px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>CATEGORIES</p>
           </div>
@@ -206,7 +206,19 @@ export default function POSPage() {
             })}
           </div>
         </div>
-
+        {/* Mobile Categories Dropdown */}
+        <select
+          className="block md:hidden w-full p-3 rounded-lg border border-[#e8ddd9] bg-white mb-2 text-[#3d2c2c] font-semibold text-[13px]"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="all">All ({products.length})</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
         {/* MIDDLE — Products */}
         <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>

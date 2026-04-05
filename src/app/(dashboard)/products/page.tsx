@@ -210,7 +210,7 @@ function ProductsPage() {
       <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT Container — Categories */}
-        <div className="w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="hidden md:flex w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>
 
           {/* Header */}
           <div style={{ padding: '12px 16px', borderBottom: '1px solid #e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -311,6 +311,20 @@ function ProductsPage() {
           )}
         </div>
 
+        {/* Mobile Categories Dropdown */}
+        <select
+          className="block md:hidden w-full p-3 rounded-lg border border-[#e8ddd9] bg-white mb-2 text-[#3d2c2c] font-semibold text-[13px]"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="all">All ({products.length})</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+
         {/* RIGHT Container — Products */}
         <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
@@ -326,15 +340,18 @@ function ProductsPage() {
             </button>
           </div>
 
-          {/* Table header */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 60px 60px 70px 120px', padding: '8px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
-            {['PRODUCT', 'BARCODE', 'BUY', 'SELL', 'STOCK', 'ACTIONS'].map(h => (
-              <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
-            ))}
-          </div>
+          {/* Table wrapper */}
+          <div className="overflow-x-auto flex-1 flex flex-col">
+            <div className="min-w-[600px] flex-1 flex flex-col">
+              {/* Table header */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 60px 60px 70px 120px', padding: '8px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+                {['PRODUCT', 'BARCODE', 'BUY', 'SELL', 'STOCK', 'ACTIONS'].map(h => (
+                  <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
+                ))}
+              </div>
 
-          {/* Product rows */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
+              {/* Product rows */}
+              <div style={{ flex: 1, overflowY: 'auto' }}>
             {filtered.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
                 <p style={{ fontSize: '36px', marginBottom: '8px' }}>📦</p>
@@ -385,6 +402,8 @@ function ProductsPage() {
                 </div>
               </div>
             ))}
+          </div>
+            </div>
           </div>
         </div>
       </div>

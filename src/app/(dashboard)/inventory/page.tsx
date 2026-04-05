@@ -144,7 +144,7 @@ function InventoryPage() {
       <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Smart Categories */}
-        <div className="w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="hidden md:flex w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '12px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>CATEGORIES</p>
             <p style={{ fontSize: '10px', color: '#c4a09a', margin: '2px 0 0' }}>
@@ -191,6 +191,20 @@ function InventoryPage() {
           </div>
         </div>
 
+        {/* MOBILE — Smart Categories Dropdown */}
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="block md:hidden w-full p-3 rounded-lg border border-[#e8ddd9] bg-white mt-0 mb-0 shrink-0 outline-none text-[#3d2c2c] text-[13px] font-semibold"
+        >
+          <option value="all">All Categories ({products.length} items)</option>
+          {smartCategories.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name} ({products.filter(p => p.category_id === cat.id).length} items)
+            </option>
+          ))}
+        </select>
+
         {/* RIGHT — Tabs container */}
         <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
@@ -225,15 +239,16 @@ function InventoryPage() {
 
           {/* STOCK LEVELS TAB */}
           {activeTab === 'stock' && (
-            <>
-              {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 120px', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
-                {['PRODUCT', 'CATEGORY', 'STOCK', 'THRESHOLD', 'ACTION'].map(h => (
-                  <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
-                ))}
-              </div>
+            <div className="overflow-x-auto flex flex-col" style={{ flex: 1 }}>
+              <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
+                {/* Table header */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 120px', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+                  {['PRODUCT', 'CATEGORY', 'STOCK', 'THRESHOLD', 'ACTION'].map(h => (
+                    <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
+                  ))}
+                </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+                <div style={{ flex: 1, overflowY: 'auto' }}>
                 {filtered.length === 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
                     <p style={{ fontSize: '36px', marginBottom: '8px' }}>📦</p>
@@ -288,12 +303,14 @@ function InventoryPage() {
                   )
                 })}
               </div>
-            </>
+            </div>
+            </div>
           )}
 
           {/* RESTOCK HISTORY TAB */}
           {activeTab === 'history' && (
-            <>
+            <div className="overflow-x-auto flex flex-col" style={{ flex: 1 }}>
+              <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
               {/* Table header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px 1fr', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
                 {['PRODUCT', 'CATEGORY', 'QTY ADDED', 'BUY PRICE', 'DATE & NOTES'].map(h => (
@@ -350,7 +367,8 @@ function InventoryPage() {
                   )
                 })}
               </div>
-            </>
+            </div>
+            </div>
           )}
         </div>
       </div>
