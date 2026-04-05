@@ -58,17 +58,16 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
     if (!videoRef.current) return
     const reader = new BrowserMultiFormatReader()
     readerRef.current = reader
-    videoRef.current.srcObject = stream
-    await videoRef.current.play()
 
-    reader.decodeFromVideoElement(videoRef.current, (result, err) => {
-      if (result && !detected) {
-        setDetected(true)
-        stopAll()
-        onScan(result.getText())
-      }
-      if (err) {} // ignore continuous errors
-    })
+    try {
+      await reader.decodeFromStream(stream, videoRef.current, (result, err) => {
+        if (result && !detected) {
+          setDetected(true)
+          stopAll()
+          onScan(result.getText())
+        }
+      })
+    } catch (err) {}
   }, [detected, onScan, stopAll])
 
   useEffect(() => {
