@@ -250,7 +250,7 @@ export default function POSPage() {
         </select>
         {/* MIDDLE — Products */}
         <div className="flex-1 bg-white rounded-[16px] border border-[#e8ddd9] flex flex-col overflow-hidden min-h-[55vh] md:min-h-0 w-full mb-2 md:mb-0">
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+          <div className="hidden md:block" style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>
               PRODUCTS <span style={{ fontWeight: 400, color: '#b08a8a' }}>({filtered.length})</span>
             </p>
@@ -265,18 +265,20 @@ export default function POSPage() {
                 )}
               </div>
             ) : viewMode === 'grid' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
+              <div className="grid grid-cols-3 md:grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 md:gap-1.5">
                 {filtered.map(product => (
                   <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={product.stock <= 0}
-                    style={{ backgroundColor: '#f9f6f5', border: '1.5px solid #e8ddd9', borderRadius: '12px', padding: '8px 6px', textAlign: 'center', cursor: product.stock <= 0 ? 'not-allowed' : 'pointer', opacity: product.stock <= 0 ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
-                    onMouseEnter={e => { if (product.stock > 0) (e.currentTarget as HTMLButtonElement).style.borderColor = '#b08a8a' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e8ddd9' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: getColor(catName(product)) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: getColor(catName(product)), marginBottom: '2px' }}>
+                    className="bg-[#f9f6f5] border-[1.5px] border-[#e8ddd9] rounded-2xl md:rounded-xl p-3 md:p-2 text-center flex flex-col items-center gap-1 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed hover:border-[#b08a8a]">
+                    {/* Category badge - desktop only */}
+                    <div className="hidden md:flex w-7 h-7 rounded-md items-center justify-center text-[9px] font-bold mb-0.5" style={{ backgroundColor: getColor(catName(product)) + '22', color: getColor(catName(product)) }}>
                       {getInitials(catName(product) || 'OT')}
                     </div>
-                    <RunningText text={product.name} className="text-[11px] font-semibold text-[#3d2c2c] leading-tight" />
-                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: '1px 0' }}>₱{product.selling_price.toFixed(2)}</p>
-                    <p style={{ fontSize: '9px', color: product.stock <= product.low_stock_threshold ? '#c47a7a' : '#9e8585', margin: 0 }}>
+                    {/* Product name */}
+                    <p className="text-[12px] md:text-[11px] font-bold text-[#3d2c2c] m-0 leading-snug w-full truncate">{product.name}</p>
+                    {/* Price */}
+                    <p className="text-[14px] md:text-[13px] font-black text-[#b08a8a] m-0">₱{product.selling_price.toFixed(2)}</p>
+                    {/* Stock */}
+                    <p className={`text-[9px] m-0 font-semibold ${product.stock <= product.low_stock_threshold ? 'text-[#c47a7a]' : 'text-[#9e8585]'}`}>
                       {product.stock <= 0 ? '❌ Out' : `${product.stock} pcs`}
                     </p>
                   </button>
