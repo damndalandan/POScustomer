@@ -311,10 +311,18 @@ export default function POSPage() {
         <div className={`${showMobileCart ? 'fixed inset-0 z-[60] bg-[#f5f0ee] flex mt-0 rounded-none border-none pb-0' : 'hidden md:flex w-[280px] bg-white rounded-[16px] border border-[#e8ddd9] mt-0'} shrink-0 flex-col overflow-hidden min-h-[45vh] md:min-h-0`}>
           
           {/* Mobile Cart Header */}
-          <div className="flex md:hidden items-center justify-between p-4 border-b border-[#e8ddd9] bg-white shrink-0">
-             <button onClick={() => setShowMobileCart(false)} className="text-[#3d2c2c] font-bold text-[14px] flex items-center gap-1.5 px-3 py-1.5 bg-[#f9f6f5] rounded-xl border border-[#e8ddd9]">← Back</button>
-             <span className="font-bold text-[#3d2c2c] text-[15px]">Cart ({items.length})</span>
-             <button onClick={clearCart} className="text-[#c47a7a] font-bold text-[12px] px-3 py-1.5 bg-[#fdf0f0] rounded-xl border border-[#f5c4c4]">Clear All</button>
+          <div className="flex md:hidden items-center justify-between px-4 py-3 bg-white shrink-0" style={{ borderBottom: '1px solid #e8ddd9' }}>
+             <button onClick={() => { setShowMobileCart(false); setShowCheckout(false) }} className="flex items-center gap-1.5 px-3 py-2 bg-[#f9f6f5] rounded-xl border border-[#e8ddd9] active:scale-95 transition-transform">
+               <span className="text-[14px]">←</span>
+               <span className="text-[13px] font-bold text-[#3d2c2c]">Back</span>
+             </button>
+             <div className="flex flex-col items-center">
+               <span className="font-black text-[15px] text-[#3d2c2c]">My Cart</span>
+               <span className="text-[10px] text-[#b08a8a] font-semibold">{items.length} item{items.length !== 1 ? 's' : ''}</span>
+             </div>
+             {items.length > 0 ? (
+               <button onClick={clearCart} className="text-[#c47a7a] font-bold text-[11px] px-3 py-2 bg-[#fdf0f0] rounded-xl border border-[#f5c4c4] active:scale-95 transition-transform">Clear</button>
+             ) : <div className="w-[52px]" />}
           </div>
 
           {/* Desktop Cart Header */}
@@ -333,26 +341,31 @@ export default function POSPage() {
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {items.length === 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9e8585' }}>
-                <p style={{ fontSize: '32px', marginBottom: '8px' }}>🛒</p>
-                <p style={{ fontSize: '13px', margin: 0 }}>Cart is empty</p>
-                <p style={{ fontSize: '11px', color: '#c4a09a', marginTop: '4px' }}>Tap a product to add</p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#9e8585', padding: '40px 20px' }}>
+                <p style={{ fontSize: '48px', marginBottom: '12px' }}>🛒</p>
+                <p style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#3d2c2c' }}>Your cart is empty</p>
+                <p style={{ fontSize: '12px', color: '#b08a8a', marginTop: '6px', textAlign: 'center' }}>Tap a product to start adding items</p>
               </div>
             ) : (
-              <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {items.map(item => (
-                  <div key={item.product_id} style={{ backgroundColor: '#f9f6f5', borderRadius: '10px', padding: '8px 10px', border: '1px solid #e8ddd9' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                      <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d2c2c', margin: 0, flex: 1, paddingRight: '8px', lineHeight: 1.3 }}>{item.product_name}</p>
-                      <button onClick={() => removeItem(item.product_id)} style={{ fontSize: '11px', color: '#c47a7a', border: 'none', background: 'none', cursor: 'pointer', padding: 0, flexShrink: 0 }}>✕</button>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: 'none', backgroundColor: '#e8ddd9', color: '#3d2c2c', cursor: 'pointer', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>−</button>
-                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#3d2c2c', minWidth: '20px', textAlign: 'center' }}>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: 'none', backgroundColor: '#c4a09a', color: 'white', cursor: 'pointer', fontWeight: 700, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+              <div className="p-3 md:p-2 flex flex-col gap-2 md:gap-1.5">
+                {items.map((item, i) => (
+                  <div key={item.product_id} className="bg-white md:bg-[#f9f6f5] rounded-2xl md:rounded-[10px] p-3 md:p-2 border border-[#e8ddd9] shadow-sm md:shadow-none">
+                    {/* Product name + remove */}
+                    <div className="flex justify-between items-start mb-2 md:mb-1.5">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <p className="text-[13px] md:text-[12px] font-bold text-[#3d2c2c] m-0 leading-tight truncate">{item.product_name}</p>
+                        <p className="text-[10px] text-[#b08a8a] m-0 mt-0.5">₱{item.selling_price.toFixed(2)} each</p>
                       </div>
-                      <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: 0 }}>₱{item.subtotal.toFixed(2)}</p>
+                      <button onClick={() => removeItem(item.product_id)} className="w-6 h-6 rounded-full bg-[#fdf0f0] border border-[#f5c4c4] flex items-center justify-center text-[10px] text-[#c47a7a] shrink-0 active:scale-90 transition-transform">✕</button>
+                    </div>
+                    {/* Qty controls + subtotal */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 bg-[#f9f6f5] md:bg-white rounded-xl p-1 border border-[#e8ddd9]">
+                        <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#e8ddd9] text-[#3d2c2c] font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">−</button>
+                        <span className="text-[14px] md:text-[13px] font-black text-[#3d2c2c] min-w-[24px] md:min-w-[20px] text-center">{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#c4a09a] text-white font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">+</button>
+                      </div>
+                      <p className="text-[15px] md:text-[13px] font-black text-[#b08a8a] m-0">₱{item.subtotal.toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -384,15 +397,23 @@ export default function POSPage() {
                     </button>
                   ))}
                 </div>
-                {posPaymentMethod === 'cash' && (
+                {(posPaymentMethod === 'cash' || posPaymentMethod === 'utang') && (
                   <div style={{ marginBottom: '14px' }}>
-                    <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED</label>
+                    <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>
+                      {posPaymentMethod === 'utang' ? 'PARTIAL PAYMENT (optional)' : 'AMOUNT TENDERED'}
+                    </label>
                     <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
                       style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
-                    {amount_tendered >= subtotal && (
+                    {posPaymentMethod === 'cash' && amount_tendered >= subtotal && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#f0f9f0', borderRadius: '10px' }}>
                         <span style={{ fontSize: '13px', color: '#7aaa7a', fontWeight: 600 }}>Change</span>
                         <span style={{ fontSize: '16px', fontWeight: 700, color: '#7aaa7a' }}>₱{change.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {posPaymentMethod === 'utang' && amount_tendered > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#fdf5f0', borderRadius: '10px' }}>
+                        <span style={{ fontSize: '13px', color: '#c4aa7a', fontWeight: 600 }}>Remaining Utang</span>
+                        <span style={{ fontSize: '16px', fontWeight: 700, color: '#c47a7a' }}>₱{Math.max(0, subtotal - amount_tendered).toFixed(2)}</span>
                       </div>
                     )}
                   </div>
@@ -505,15 +526,23 @@ export default function POSPage() {
                 </button>
               ))}
             </div>
-            {posPaymentMethod === 'cash' && (
+            {(posPaymentMethod === 'cash' || posPaymentMethod === 'utang') && (
               <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED</label>
+                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>
+                  {posPaymentMethod === 'utang' ? 'PARTIAL PAYMENT (optional)' : 'AMOUNT TENDERED'}
+                </label>
                 <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
                   style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
-                {amount_tendered >= subtotal && (
+                {posPaymentMethod === 'cash' && amount_tendered >= subtotal && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#f0f9f0', borderRadius: '10px' }}>
                     <span style={{ fontSize: '13px', color: '#7aaa7a', fontWeight: 600 }}>Change</span>
                     <span style={{ fontSize: '16px', fontWeight: 700, color: '#7aaa7a' }}>₱{change.toFixed(2)}</span>
+                  </div>
+                )}
+                {posPaymentMethod === 'utang' && amount_tendered > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#fdf5f0', borderRadius: '10px' }}>
+                    <span style={{ fontSize: '13px', color: '#c4aa7a', fontWeight: 600 }}>Remaining Utang</span>
+                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#c47a7a' }}>₱{Math.max(0, subtotal - amount_tendered).toFixed(2)}</span>
                   </div>
                 )}
               </div>
