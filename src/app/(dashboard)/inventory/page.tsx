@@ -148,6 +148,23 @@ function InventoryPage() {
         </div>
       )}
 
+      {/* TOP — Search bar */}
+      <div style={{ padding: '12px 16px', backgroundColor: '#f5f0ee', display: 'flex', gap: '8px', flexShrink: 0 }}>
+        <input
+          type="text"
+          placeholder="🔍 Search products by name or barcode..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e8ddd9', backgroundColor: '#fff', fontSize: '13px', color: '#3d2c2c', outline: 'none' }}
+        />
+        <button
+          onClick={() => setScanning(true)}
+          style={{ padding: '10px 14px', borderRadius: '10px', border: '1.5px dashed #c4a09a', backgroundColor: '#e8d5d0', color: '#b08a8a', fontSize: '12px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+        >
+          📷 Scan Restock
+        </button>
+      </div>
+
       {/* Main content */}
       <div className="flex flex-col md:flex-row flex-1 gap-3 md:gap-[10px] px-3 pb-3 md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden mt-3 md:mt-0">
 
@@ -246,7 +263,6 @@ function InventoryPage() {
               ))}
             </div>
 
-            {/* Note: Scan to restock button moved to global search bar */}
           </div>
 
           {/* Scanner */}
