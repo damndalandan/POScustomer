@@ -78,11 +78,28 @@ export default function POSPage() {
 
   function addToCart(product: Product) {
     if (product.stock <= 0) { showToast('⚠️ Out of stock!'); return }
+    // Check if adding 1 more would exceed available stock
+    const existing = items.find(i => i.product_id === product.id)
+    if (existing && existing.quantity >= product.stock) {
+      showToast(`⚠️ Only ${product.stock} pcs available!`)
+      return
+    }
     if (addingRef.current === product.id) return
     addingRef.current = product.id
     setTimeout(() => { addingRef.current = null }, 500)
     addItem({ product_id: product.id, product_name: product.name, barcode: product.barcode, quantity: 1, buying_price: product.buying_price, selling_price: product.selling_price, subtotal: product.selling_price })
     showToast(`✅ ${product.name} added!`)
+  }
+
+  function handleUpdateQuantity(productId: string, newQty: number) {
+    if (newQty <= 0) { updateQuantity(productId, 0); return }
+    const product = products.find(p => p.id === productId)
+    if (product && newQty > product.stock) {
+      showToast(`⚠️ Only ${product.stock} pcs available!`)
+      updateQuantity(productId, product.stock)
+      return
+    }
+    updateQuantity(productId, newQty)
   }
 
   function handleBarcodeScan(decoded: string) {
@@ -266,23 +283,53 @@ export default function POSPage() {
               </div>
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-3 md:grid-cols-[repeat(auto-fill,minmax(100px,1fr))] gap-2 md:gap-1.5">
-                {filtered.map(product => (
-                  <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={product.stock <= 0}
-                    className="bg-[#f9f6f5] border-[1.5px] border-[#e8ddd9] rounded-2xl md:rounded-xl p-3 md:p-2 text-center flex flex-col items-center gap-1 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed hover:border-[#b08a8a]">
-                    {/* Category badge - desktop only */}
-                    <div className="hidden md:flex w-7 h-7 rounded-md items-center justify-center text-[9px] font-bold mb-0.5" style={{ backgroundColor: getColor(catName(product)) + '22', color: getColor(catName(product)) }}>
-                      {getInitials(catName(product) || 'OT')}
-                    </div>
-                    {/* Product name */}
-                    <p className="text-[12px] md:text-[11px] font-bold text-[#3d2c2c] m-0 leading-snug w-full truncate">{product.name}</p>
-                    {/* Price */}
-                    <p className="text-[14px] md:text-[13px] font-black text-[#b08a8a] m-0">₱{product.selling_price.toFixed(2)}</p>
-                    {/* Stock */}
-                    <p className={`text-[9px] m-0 font-semibold ${product.stock <= product.low_stock_threshold ? 'text-[#c47a7a]' : 'text-[#9e8585]'}`}>
-                      {product.stock <= 0 ? '❌ Out' : `${product.stock} pcs`}
-                    </p>
-                  </button>
-                ))}
+                {filtered.map(product => {
+                  const cartItem = items.find(i => i.product_id === product.id)
+                  const cartQty = cartItem?.quantity || 0
+                  const remainingStock = product.stock - cartQty
+                  const isOutOfStock = product.stock <= 0
+                  const isMaxed = cartQty >= product.stock && product.stock > 0
+                  
+                  return (
+                    <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={isOutOfStock || isMaxed}
+                      className={`relative bg-[#f9f6f5] border-[1.5px] rounded-2xl md:rounded-xl p-3 md:p-2 text-center flex flex-col items-center gap-1 active:scale-95 transition-transform ${isOutOfStock ? 'opacity-50 cursor-not-allowed border-[#f5c4c4]' : isMaxed ? 'opacity-60 cursor-not-allowed border-[#c4aa7a]' : 'border-[#e8ddd9] hover:border-[#b08a8a]'}`}>
+                      
+                      {/* Out of Stock overlay */}
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 rounded-2xl md:rounded-xl bg-white/60 flex items-center justify-center z-10">
+                          <span className="bg-[#c47a7a] text-white text-[9px] font-black px-2 py-1 rounded-full tracking-wide">OUT OF STOCK</span>
+                        </div>
+                      )}
+                      
+                      {/* Maxed out badge */}
+                      {isMaxed && !isOutOfStock && (
+                        <div className="absolute inset-0 rounded-2xl md:rounded-xl bg-white/50 flex items-center justify-center z-10">
+                          <span className="bg-[#c4aa7a] text-white text-[9px] font-black px-2 py-1 rounded-full tracking-wide">MAX IN CART</span>
+                        </div>
+                      )}
+
+                      {/* Cart quantity badge */}
+                      {cartQty > 0 && !isOutOfStock && (
+                        <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#b08a8a] text-white rounded-full flex items-center justify-center text-[10px] font-black z-20 shadow-sm">
+                          {cartQty}
+                        </div>
+                      )}
+
+                      {/* Category badge - desktop only */}
+                      <div className="hidden md:flex w-7 h-7 rounded-md items-center justify-center text-[9px] font-bold mb-0.5" style={{ backgroundColor: getColor(catName(product)) + '22', color: getColor(catName(product)) }}>
+                        {getInitials(catName(product) || 'OT')}
+                      </div>
+                      {/* Product name */}
+                      <p className="text-[12px] md:text-[11px] font-bold text-[#3d2c2c] m-0 leading-snug w-full truncate">{product.name}</p>
+                      {/* Price */}
+                      <p className="text-[14px] md:text-[13px] font-black text-[#b08a8a] m-0">₱{product.selling_price.toFixed(2)}</p>
+                      {/* Stock */}
+                      <p className={`text-[9px] m-0 font-semibold ${isOutOfStock ? 'text-[#c47a7a]' : remainingStock <= product.low_stock_threshold ? 'text-[#c4aa7a]' : 'text-[#9e8585]'}`}>
+                        {isOutOfStock ? 'No stock' : `${remainingStock} left`}
+                      </p>
+                    </button>
+                  )
+                })}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -363,9 +410,9 @@ export default function POSPage() {
                     {/* Qty controls + subtotal */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 bg-[#f9f6f5] md:bg-white rounded-xl p-1 border border-[#e8ddd9]">
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#e8ddd9] text-[#3d2c2c] font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">−</button>
+                        <button onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#e8ddd9] text-[#3d2c2c] font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">−</button>
                         <span className="text-[14px] md:text-[13px] font-black text-[#3d2c2c] min-w-[24px] md:min-w-[20px] text-center">{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#c4a09a] text-white font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">+</button>
+                        <button onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)} className="w-7 h-7 md:w-6 md:h-6 rounded-lg bg-[#c4a09a] text-white font-bold text-[15px] md:text-[14px] flex items-center justify-center border-none active:scale-90 transition-transform">+</button>
                       </div>
                       <p className="text-[15px] md:text-[13px] font-black text-[#b08a8a] m-0">₱{item.subtotal.toFixed(2)}</p>
                     </div>
