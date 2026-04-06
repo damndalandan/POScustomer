@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Product, Category } from '@/types'
 import BarcodeScanner from '@/components/BarcodeScanner'
 import { withAuth } from '@/lib/withAuth'
+import RunningText from '@/components/RunningText'
 
 
 function getColor(name: string): string {
@@ -343,8 +344,8 @@ function ProductsPage() {
             </button>
           </div>
 
-          {/* Table wrapper */}
-          <div className="overflow-x-auto flex-1 flex flex-col">
+          {/* Table wrapper Desktop */}
+          <div className="hidden md:flex overflow-x-auto flex-1 flex-col">
             <div className="min-w-[600px] flex-1 flex flex-col">
               {/* Table header */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 60px 60px 70px 120px', padding: '8px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
@@ -407,6 +408,45 @@ function ProductsPage() {
             ))}
           </div>
             </div>
+          </div>
+
+          {/* Product cards Mobile */}
+          <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-2 bg-[#f5f0ee]">
+            {filtered.length === 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
+                <p style={{ fontSize: '36px', marginBottom: '8px' }}>📦</p>
+                <p style={{ fontSize: '13px', margin: 0 }}>No products yet</p>
+              </div>
+            ) : filtered.map((product) => (
+              <div key={product.id} className={`bg-white rounded-2xl p-3 border border-[#e8ddd9] shadow-sm flex flex-col gap-2 ${product.is_active ? '' : 'opacity-50'}`}>
+                {/* Top row: Name & Active toggle */}
+                <div className="flex justify-between items-start gap-3">
+                  <div className="min-w-0" style={{ flex: 1 }}>
+                      <RunningText text={product.name} className="text-[14px] font-bold text-[#3d2c2c]" />
+                      <p className="text-[11px] text-[#9e8585] mt-0.5">
+                        {(product as Product & { category?: { name: string } }).category?.name || 'Uncategorized'}
+                        {product.barcode && <span className="ml-1 text-[#c4aa7a] font-semibold">· {product.barcode.slice(-5)}</span>}
+                      </p>
+                  </div>
+                  <span className={`text-[10px] px-2 py-1 rounded-full font-bold flex-shrink-0 whitespace-nowrap ${product.stock <= 0 ? 'bg-[#fdf0f0] text-[#c47a7a]' : product.stock <= product.low_stock_threshold ? 'bg-[#fdf5f0] text-[#c4aa7a]' : 'bg-[#f0f9f0] text-[#7aaa7a]'}`}>
+                    {product.stock <= 0 ? 'Out' : `${product.stock} pcs`}
+                  </span>
+                </div>
+                
+                {/* Price & Actions Row */}
+                <div className="flex items-end justify-between mt-1 border-t border-[#f5f0ee] pt-2">
+                  <div>
+                    <p className="text-[10px] font-semibold text-[#9e8585] mb-0.5">BUY: ₱{product.buying_price.toFixed(2)}</p>
+                    <p className="text-[15px] font-bold text-[#c47a7a]">SELL: ₱{product.selling_price.toFixed(2)}</p>
+                  </div>
+                  <div className="flex gap-1.5 flex-shrink-0">
+                    <button onPointerDown={e => { e.preventDefault(); safeModalAction(() => openEditProduct(product)) }} className="px-3 py-1.5 bg-[#e8d5d0] text-[#b08a8a] text-[11px] font-bold rounded-lg border-none active:scale-95 transition-transform">Edit</button>
+                    <button onClick={() => toggleActive(product)} className={`px-3 py-1.5 text-[11px] font-bold rounded-lg border-none active:scale-95 transition-transform ${product.is_active ? 'bg-[#f5f0ee] text-[#9e8585]' : 'bg-[#e8f5e8] text-[#7aaa7a]'}`}>{product.is_active ? 'Off' : 'On'}</button>
+                    <button onClick={() => handleDeleteProduct(product)} className="px-3 py-1.5 bg-[#f9e8e8] text-[#c47a7a] text-[11px] font-bold rounded-lg border-none active:scale-95 transition-transform">Del</button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

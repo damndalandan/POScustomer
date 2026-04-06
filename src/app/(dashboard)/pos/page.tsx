@@ -9,6 +9,7 @@ import { addToQueue } from '@/lib/db'
 import { syncOfflineQueue } from '@/lib/sync'
 import { Product } from '@/types'
 import BarcodeScanner from '@/components/BarcodeScanner'
+import RunningText from '@/components/RunningText'
 
 const categoryColors: Record<string, string> = {
   'Beverages': '#8aaac4', 'Canned Goods': '#c4a09a', 'Condiments': '#c4aa7a',
@@ -269,7 +270,7 @@ export default function POSPage() {
                     <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: getColor(catName(product)) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: getColor(catName(product)) }}>
                       {getInitials(catName(product) || 'OT')}
                     </div>
-                    <p style={{ fontSize: '11px', fontWeight: 600, color: '#3d2c2c', margin: 0, lineHeight: 1.3 }}>{product.name}</p>
+                    <RunningText text={product.name} className="text-[11px] font-semibold text-[#3d2c2c]" />
                     <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: 0 }}>₱{product.selling_price.toFixed(2)}</p>
                     <p style={{ fontSize: '10px', color: product.stock <= product.low_stock_threshold ? '#c47a7a' : '#9e8585', margin: 0 }}>
                       {product.stock <= 0 ? '❌ Out' : `${product.stock} pcs`}
@@ -287,8 +288,8 @@ export default function POSPage() {
                     <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: getColor(catName(product)) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: getColor(catName(product)), flexShrink: 0 }}>
                       {getInitials(catName(product) || 'OT')}
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{product.name}</p>
+                    <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                      <RunningText text={product.name} className="text-[13px] font-semibold text-[#3d2c2c]" />
                       <p style={{ fontSize: '11px', color: '#9e8585', margin: '2px 0 0' }}>{catName(product) || 'Uncategorized'}</p>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>

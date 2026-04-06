@@ -29,6 +29,14 @@ a, button, [role="button"], input, select {
   touch-action: manipulation;
 }
 
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(calc(-50% - 25px)); }
+}
+.animate-marquee {
+  animation: marquee 10s linear infinite;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4bfbb; border-radius: 4px; }
