@@ -186,7 +186,7 @@ function ProductsPage() {
       )}
 
       {/* TOP — Search bar */}
-      <div style={{ padding: '12px 16px', backgroundColor: '#f5f0ee', borderBottom: '1px solid #e8ddd9', display: 'flex', gap: '8px', flexShrink: 0 }}>
+      <div style={{ padding: '12px 16px', backgroundColor: '#f5f0ee', display: 'flex', gap: '8px', flexShrink: 0 }}>
         <input
           type="text"
           placeholder="🔍 Search products by name or barcode..."
