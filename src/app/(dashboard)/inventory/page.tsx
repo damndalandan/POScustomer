@@ -39,6 +39,7 @@ function InventoryPage() {
   const [buyingPrice, setBuyingPrice] = useState('')
   const [notes, setNotes] = useState('')
   const [toast, setToast] = useState('')
+  const [search, setSearch] = useState('')
   const user = getStoredUser()
 
   useEffect(() => { loadData() }, [])
@@ -113,7 +114,13 @@ function InventoryPage() {
   })
   smartCategories.sort((a, b) => a.name.localeCompare(b.name))
 
-  const filtered = products.filter(p => selectedCategory === 'all' || p.category_id === selectedCategory)
+  smartCategories.sort((a, b) => a.name.localeCompare(b.name))
+
+  const filtered = products.filter(p => {
+    const matchCat = selectedCategory === 'all' || p.category_id === selectedCategory
+    const matchSearch = search ? (p.name.toLowerCase().includes(search.toLowerCase()) || (p.barcode && p.barcode.includes(search))) : true
+    return matchCat && matchSearch
+  })
   const lowStockCount = products.filter(p => p.stock <= p.low_stock_threshold).length
 
   return (
@@ -142,51 +149,67 @@ function InventoryPage() {
       )}
 
       {/* Main content */}
-      <div className="flex flex-col md:flex-row flex-1 gap-3 md:gap-[10px] px-3 pb-3 md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 gap-3 md:gap-[10px] px-3 pb-3 md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden mt-3 md:mt-0">
 
-        {/* LEFT — Smart Categories */}
+        {/* LEFT Container — Categories */}
         <div className="hidden md:flex w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>
-          <div style={{ padding: '12px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>CATEGORIES</p>
-            <p style={{ fontSize: '10px', color: '#c4a09a', margin: '2px 0 0' }}>
-              {smartCategories.length} active
-            </p>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
 
+          {/* Header */}
+          <div style={{ padding: '12px 16px', borderBottom: '1px solid #e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+            <p style={{ fontSize: '13px', fontWeight: 700, color: '#3d2c2c', margin: 0 }}>Categories</p>
+          </div>
+
+          <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
             {/* All */}
-            <button onClick={() => setSelectedCategory('all')}
-              style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', backgroundColor: selectedCategory === 'all' ? '#f5e8e5' : 'transparent', borderLeft: selectedCategory === 'all' ? '3px solid #b08a8a' : '3px solid transparent' }}>
-              <div style={{ width: '30px', height: '30px', borderRadius: '8px', backgroundColor: '#e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: '#9e8585', flexShrink: 0 }}>All</div>
-              <div>
-                <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>All</p>
-                <p style={{ fontSize: '10px', color: '#9e8585', margin: 0 }}>{products.length} items</p>
+            <button
+              onClick={() => setSelectedCategory('all')}
+              style={{
+                width: '100%', padding: '10px 12px', borderRadius: '10px', border: 'none',
+                cursor: 'pointer', textAlign: 'left', marginBottom: '2px',
+                backgroundColor: selectedCategory === 'all' ? '#f5e8e5' : 'transparent',
+                borderLeft: selectedCategory === 'all' ? '3px solid #b08a8a' : '3px solid transparent',
+                display: 'flex', alignItems: 'center', gap: '10px',
+              }}
+            >
+              <div style={{ width: '30px', height: '30px', borderRadius: '8px', backgroundColor: '#e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color: '#9e8585', flexShrink: 0 }}>
+                All
+              </div>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>All Products</p>
+                <p style={{ fontSize: '11px', color: '#9e8585', margin: 0 }}>{products.length} items</p>
               </div>
             </button>
 
-            {/* Smart categories only */}
+            {/* Categories */}
             {smartCategories.length === 0 ? (
               <p style={{ fontSize: '11px', color: '#9e8585', textAlign: 'center', padding: '12px 4px' }}>
                 No products yet
               </p>
             ) : smartCategories.map(cat => {
-              const isActive = selectedCategory === cat.id
-              const color = getColor(cat.name)
               const count = products.filter(p => p.category_id === cat.id).length
               const lowCount = products.filter(p => p.category_id === cat.id && p.stock <= p.low_stock_threshold).length
+              const isActive = selectedCategory === cat.id
+              const color = getColor(cat.name)
               return (
-                <button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: 'none', cursor: 'pointer', marginBottom: '3px', display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left', backgroundColor: isActive ? '#f5e8e5' : 'transparent', borderLeft: isActive ? '3px solid #b08a8a' : '3px solid transparent' }}>
-                  <div style={{ width: '30px', height: '30px', borderRadius: '8px', backgroundColor: color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color, flexShrink: 0 }}>
+                <div key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  style={{
+                    padding: '10px 12px', borderRadius: '10px', marginBottom: '2px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
+                    backgroundColor: isActive ? '#f5e8e5' : 'transparent',
+                    borderLeft: isActive ? '3px solid #b08a8a' : '3px solid transparent',
+                  }}
+                >
+                  <div style={{ width: '30px', height: '30px', borderRadius: '8px', backgroundColor: color + '33', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, color, flexShrink: 0 }}>
                     {getInitials(cat.name)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: '12px', fontWeight: 600, color: '#3d2c2c', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.name}</p>
-                    <p style={{ fontSize: '10px', color: '#9e8585', margin: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.name}</p>
+                    <p style={{ fontSize: '11px', color: '#9e8585', margin: 0 }}>
                       {count} items {lowCount > 0 && <span style={{ color: '#c47a7a' }}>· {lowCount} low</span>}
                     </p>
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>
@@ -223,11 +246,7 @@ function InventoryPage() {
               ))}
             </div>
 
-            {/* Scan button */}
-            <button onClick={() => setScanning(true)}
-              style={{ padding: '8px 14px', borderRadius: '10px', border: '1.5px dashed #c4a09a', backgroundColor: '#e8d5d0', color: '#b08a8a', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
-              📷 Scan to Restock
-            </button>
+            {/* Note: Scan to restock button moved to global search bar */}
           </div>
 
           {/* Scanner */}
