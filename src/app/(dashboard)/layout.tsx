@@ -83,6 +83,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '10px 16px',
+        paddingTop: 'max(10px, env(safe-area-inset-top))',
         background: 'linear-gradient(135deg, #c4a09a, #b08a8a)',
         flexShrink: 0,
         zIndex: 10,
