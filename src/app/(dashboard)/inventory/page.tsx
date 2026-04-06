@@ -7,6 +7,7 @@ import { getStoredUser } from '@/lib/auth'
 import { addToQueue } from '@/lib/db'
 import BarcodeScanner from '@/components/BarcodeScanner'
 import { withAuth } from '@/lib/withAuth'
+import RunningText from '@/components/RunningText'
 
 const categoryColors: Record<string, string> = {
   'Beverages': '#8aaac4', 'Canned Goods': '#c4a09a', 'Condiments': '#c4aa7a',
@@ -239,136 +240,166 @@ function InventoryPage() {
 
           {/* STOCK LEVELS TAB */}
           {activeTab === 'stock' && (
-            <div className="overflow-x-auto flex flex-col" style={{ flex: 1 }}>
-              <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
-                {/* Table header */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 120px', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
-                  {['PRODUCT', 'CATEGORY', 'STOCK', 'THRESHOLD', 'ACTION'].map(h => (
-                    <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
-                  ))}
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:flex overflow-x-auto flex-col" style={{ flex: 1 }}>
+                <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 120px', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+                    {['PRODUCT', 'STOCK', 'THRESHOLD', 'ACTION'].map(h => (
+                      <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
+                    ))}
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    {filtered.length === 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
+                        <p style={{ fontSize: '36px', marginBottom: '8px' }}>📦</p>
+                        <p style={{ fontSize: '13px', margin: 0 }}>No products in this category</p>
+                      </div>
+                    ) : filtered.map((product, i) => {
+                      const isLow = product.stock <= product.low_stock_threshold
+                      const isOut = product.stock <= 0
+                      const catName = (product as Product & { category?: { name: string } }).category?.name
+                      
+                      return (
+                        <div key={product.id}
+                          style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 120px', padding: '12px 16px', borderBottom: i < filtered.length - 1 ? '1px solid #f9f6f5' : 'none', alignItems: 'center', backgroundColor: isOut ? '#fdf8f8' : isLow ? '#fdfaf5' : 'white' }}>
+                          <div>
+                            <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>{product.name}</p>
+                            <p style={{ fontSize: '11px', color: '#9e8585', margin: '2px 0 0' }}>
+                              {catName || 'Uncategorized'}
+                              {product.expiry_date && <span style={{ color: '#c4aa7a', marginLeft: '6px' }}>· Exp: {product.expiry_date}</span>}
+                            </p>
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, backgroundColor: isOut ? '#fdf0f0' : isLow ? '#fdf5f0' : '#f0f9f0', color: isOut ? '#c47a7a' : isLow ? '#c4aa7a' : '#7aaa7a' }}>
+                              {isOut ? '❌ Out' : `${product.stock} pcs`}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: '12px', color: '#9e8585', margin: 0 }}>Alert at {product.low_stock_threshold}</p>
+                          <button onClick={() => openRestock(product)}
+                            style={{ padding: '7px 14px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontSize: '12px', fontWeight: 600, cursor: 'pointer', width: 'fit-content' }}>
+                            + Restock
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
+              </div>
 
-                <div style={{ flex: 1, overflowY: 'auto' }}>
+              {/* Mobile Cards */}
+              <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-2 bg-[#f5f0ee]">
                 {filtered.length === 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
                     <p style={{ fontSize: '36px', marginBottom: '8px' }}>📦</p>
                     <p style={{ fontSize: '13px', margin: 0 }}>No products in this category</p>
                   </div>
-                ) : filtered.map((product, i) => {
+                ) : filtered.map((product) => {
                   const isLow = product.stock <= product.low_stock_threshold
                   const isOut = product.stock <= 0
+                  const catName = (product as Product & { category?: { name: string } }).category?.name
+
                   return (
-                    <div key={product.id}
-                      style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 120px', padding: '12px 16px', borderBottom: i < filtered.length - 1 ? '1px solid #f9f6f5' : 'none', alignItems: 'center', backgroundColor: isOut ? '#fdf8f8' : isLow ? '#fdfaf5' : 'white' }}>
-
-                      {/* Product */}
-                      <div>
-                        <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>{product.name}</p>
-                        {product.expiry_date && (
-                          <p style={{ fontSize: '10px', color: '#c4aa7a', margin: '2px 0 0' }}>Exp: {product.expiry_date}</p>
-                        )}
-                      </div>
-
-                      {/* Category */}
-                      <div>
-                        {(() => {
-                          const catName = (product as Product & { category?: { name: string } }).category?.name
-                          const color = getColor(catName || '')
-                          return catName ? (
-                            <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', fontWeight: 600, backgroundColor: color + '22', color }}>
-                              {catName}
-                            </span>
-                          ) : <span style={{ fontSize: '11px', color: '#9e8585' }}>—</span>
-                        })()}
-                      </div>
-
-                      {/* Stock */}
-                      <div>
-                        <span style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '20px', fontWeight: 700, backgroundColor: isOut ? '#fdf0f0' : isLow ? '#fdf5f0' : '#f0f9f0', color: isOut ? '#c47a7a' : isLow ? '#c4aa7a' : '#7aaa7a' }}>
-                          {isOut ? '❌ Out' : `${product.stock} pcs`}
+                    <div key={product.id} className={`bg-white rounded-2xl p-3 border shadow-sm flex flex-col gap-2 ${isOut ? 'border-[#f5c4c4] bg-[#fdfaf5]' : isLow ? 'border-[#e8ddd9] bg-[#fdfaf5]' : 'border-[#e8ddd9]'}`}>
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <RunningText text={product.name} className="text-[14px] font-bold text-[#3d2c2c]" />
+                          <p className="text-[11px] text-[#9e8585] mt-0.5">
+                            {catName || 'Uncategorized'}
+                          </p>
+                        </div>
+                        <span className={`text-[10px] px-2 py-1 rounded-full font-bold flex-shrink-0 whitespace-nowrap ${isOut ? 'bg-[#fdf0f0] text-[#c47a7a]' : isLow ? 'bg-[#fdf5f0] text-[#c4aa7a]' : 'bg-[#f0f9f0] text-[#7aaa7a]'}`}>
+                          {isOut ? 'Out' : `${product.stock} pcs`}
                         </span>
                       </div>
-
-                      {/* Threshold */}
-                      <p style={{ fontSize: '12px', color: '#9e8585', margin: 0 }}>
-                        Alert at {product.low_stock_threshold}
-                      </p>
-
-                      {/* Action */}
-                      <button onClick={() => openRestock(product)}
-                        style={{ padding: '7px 14px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontSize: '12px', fontWeight: 600, cursor: 'pointer', width: 'fit-content' }}>
-                        + Restock
-                      </button>
+                      <div className="flex items-end justify-between mt-1 border-t border-[#f5f0ee] pt-2">
+                        <p className="text-[10px] text-[#9e8585]">Alert: &lt; {product.low_stock_threshold}</p>
+                        <button onClick={() => openRestock(product)} className="px-3 py-1.5 bg-[#e8d5d0] text-[#b08a8a] text-[11px] font-bold rounded-lg border-none active:scale-95 transition-transform">+ Restock</button>
+                      </div>
                     </div>
                   )
                 })}
               </div>
-            </div>
-            </div>
+            </>
           )}
 
           {/* RESTOCK HISTORY TAB */}
           {activeTab === 'history' && (
-            <div className="overflow-x-auto flex flex-col" style={{ flex: 1 }}>
-              <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
-              {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px 1fr', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
-                {['PRODUCT', 'CATEGORY', 'QTY ADDED', 'BUY PRICE', 'DATE & NOTES'].map(h => (
-                  <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
-                ))}
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:flex overflow-x-auto flex-col" style={{ flex: 1 }}>
+                <div className="min-w-[600px] flex flex-col" style={{ flex: 1, height: 0 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 1fr', padding: '10px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+                    {['PRODUCT', 'QTY ADDED', 'BUY PRICE', 'DATE & NOTES'].map(h => (
+                      <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
+                    ))}
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    {logs.length === 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
+                        <p style={{ fontSize: '36px', marginBottom: '8px' }}>📋</p>
+                        <p style={{ fontSize: '13px', margin: 0 }}>No restock history yet</p>
+                      </div>
+                    ) : logs.map((log, i) => {
+                      const catName = (log.product as { name: string; category?: { name: string } } | undefined)?.category?.name
+                      
+                      return (
+                        <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 1fr', padding: '12px 16px', borderBottom: i < logs.length - 1 ? '1px solid #f9f6f5' : 'none', alignItems: 'center', backgroundColor: 'white' }}>
+                          <div>
+                            <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>{(log.product as { name: string } | undefined)?.name || '—'}</p>
+                            <p style={{ fontSize: '11px', color: '#9e8585', margin: '2px 0 0' }}>{catName || 'Uncategorized'}</p>
+                          </div>
+                          <span style={{ fontSize: '13px', fontWeight: 700, color: '#7aaa7a' }}>+{log.quantity} pcs</span>
+                          <p style={{ fontSize: '12px', color: '#9e8585', margin: 0 }}>{log.buying_price ? `₱${log.buying_price.toFixed(2)}` : '—'}</p>
+                          <div>
+                            <p style={{ fontSize: '12px', color: '#3d2c2c', margin: 0 }}>
+                              {new Date(log.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              <span style={{ color: '#9e8585', marginLeft: '6px' }}>{new Date(log.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </p>
+                            {log.notes && <p style={{ fontSize: '11px', color: '#c4a09a', margin: '2px 0 0' }}>{log.notes}</p>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              {/* Mobile Cards */}
+              <div className="md:hidden flex-1 overflow-y-auto p-3 space-y-2 bg-[#f5f0ee]">
                 {logs.length === 0 ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '200px', color: '#9e8585' }}>
                     <p style={{ fontSize: '36px', marginBottom: '8px' }}>📋</p>
                     <p style={{ fontSize: '13px', margin: 0 }}>No restock history yet</p>
                   </div>
-                ) : logs.map((log, i) => {
+                ) : logs.map((log) => {
                   const catName = (log.product as { name: string; category?: { name: string } } | undefined)?.category?.name
-                  const color = getColor(catName || '')
+                  
                   return (
-                    <div key={log.id}
-                      style={{ display: 'grid', gridTemplateColumns: '1fr 100px 80px 80px 1fr', padding: '12px 16px', borderBottom: i < logs.length - 1 ? '1px solid #f9f6f5' : 'none', alignItems: 'center', backgroundColor: 'white' }}>
-
-                      {/* Product */}
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#3d2c2c', margin: 0 }}>
-                        {(log.product as { name: string } | undefined)?.name || '—'}
-                      </p>
-
-                      {/* Category */}
-                      <div>
-                        {catName ? (
-                          <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '20px', fontWeight: 600, backgroundColor: color + '22', color }}>
-                            {catName}
-                          </span>
-                        ) : <span style={{ fontSize: '11px', color: '#9e8585' }}>—</span>}
+                    <div key={log.id} className="bg-white rounded-2xl p-3 border border-[#e8ddd9] shadow-sm flex flex-col gap-2">
+                      <div className="flex justify-between items-start gap-3">
+                        <div className="min-w-0 flex-1">
+                          <RunningText text={(log.product as { name: string } | undefined)?.name || '—'} className="text-[14px] font-bold text-[#3d2c2c]" />
+                          <p className="text-[11px] text-[#9e8585] mt-0.5">{catName || 'Uncategorized'}</p>
+                        </div>
+                        <span className="text-[12px] px-2 py-0.5 rounded-full font-bold bg-[#f0f9f0] color-[#7aaa7a] text-[#7aaa7a] flex-shrink-0 whitespace-nowrap">
+                          +{log.quantity}
+                        </span>
                       </div>
-
-                      {/* Qty */}
-                      <span style={{ fontSize: '13px', fontWeight: 700, color: '#7aaa7a' }}>+{log.quantity} pcs</span>
-
-                      {/* Buying price */}
-                      <p style={{ fontSize: '12px', color: '#9e8585', margin: 0 }}>
-                        {log.buying_price ? `₱${log.buying_price.toFixed(2)}` : '—'}
-                      </p>
-
-                      {/* Date + notes */}
-                      <div>
-                        <p style={{ fontSize: '12px', color: '#3d2c2c', margin: 0 }}>
-                          {new Date(log.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          <span style={{ color: '#9e8585', marginLeft: '6px' }}>
-                            {new Date(log.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </p>
-                        {log.notes && <p style={{ fontSize: '11px', color: '#c4a09a', margin: '2px 0 0' }}>{log.notes}</p>}
+                      <div className="flex items-end justify-between mt-1 border-t border-[#f5f0ee] pt-2">
+                        <div>
+                           <p style={{ fontSize: '10px', color: '#c4a09a', margin: 0 }}>{log.notes || 'No notes'}</p>
+                           <p style={{ fontSize: '10px', color: '#9e8585', margin: '2px 0 0' }}>
+                           {new Date(log.created_at).toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })} · {new Date(log.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
+                           </p>
+                        </div>
+                        <span className="text-[12px] font-bold text-[#b08a8a]">{log.buying_price ? `₱${log.buying_price.toFixed(2)}` : '—'}</span>
                       </div>
                     </div>
                   )
                 })}
               </div>
-            </div>
-            </div>
+            </>
           )}
         </div>
       </div>
