@@ -141,7 +141,7 @@ function InventoryPage() {
       )}
 
       {/* Main content */}
-      <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 gap-3 md:gap-[10px] px-3 pb-3 md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Smart Categories */}
         <div className="hidden md:flex w-full md:w-[280px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>

@@ -33,8 +33,3 @@ body {
   #receipt-content { position: fixed; left: 0; top: 0; width: 80mm; }
   @page { size: 80mm auto; margin: 0; }
 }
-
-/* Fix Safari iOS double-tap on buttons */
-button {
-  touch-action: manipulation;
-}
