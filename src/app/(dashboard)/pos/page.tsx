@@ -201,7 +201,7 @@ export default function POSPage() {
       {scanning && <BarcodeScanner onScan={handleBarcodeScan} onClose={() => setScanning(false)} />}
 
       {/* Three containers */}
-      <div className="flex flex-col md:flex-row flex-1 gap-2.5 md:gap-[10px] md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
+      <div className="flex flex-col md:flex-row flex-1 gap-3 md:gap-[10px] px-3 pb-3 md:px-3 md:pb-3 overflow-y-auto md:overflow-hidden">
 
         {/* LEFT — Categories */}
         <div className="hidden md:flex w-full md:w-[110px] shrink-0 md:shrink" style={{ backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', flexDirection: 'column', overflow: 'hidden' }}>
@@ -244,7 +244,7 @@ export default function POSPage() {
           ))}
         </select>
         {/* MIDDLE — Products */}
-        <div style={{ flex: 1, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="flex-1 bg-white rounded-[16px] border border-[#e8ddd9] flex flex-col overflow-hidden min-h-[55vh] md:min-h-0 w-full mb-2 md:mb-0">
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>
               PRODUCTS <span style={{ fontWeight: 400, color: '#b08a8a' }}>({filtered.length})</span>
@@ -303,7 +303,7 @@ export default function POSPage() {
         </div>
 
         {/* RIGHT — Cart */}
-        <div style={{ width: '280px', flexShrink: 0, backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e8ddd9', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="w-full md:w-[280px] shrink-0 bg-white rounded-[16px] border border-[#e8ddd9] flex flex-col overflow-hidden min-h-[45vh] md:min-h-0 mt-1 md:mt-0">
           <div style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>
               CART <span style={{ fontWeight: 400, color: '#b08a8a' }}>({items.length})</span>

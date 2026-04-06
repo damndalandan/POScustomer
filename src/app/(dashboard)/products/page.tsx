@@ -6,25 +6,19 @@ import { Product, Category } from '@/types'
 import BarcodeScanner from '@/components/BarcodeScanner'
 import { withAuth } from '@/lib/withAuth'
 
-const categoryColors: Record<string, string> = {
-  'Beverages': '#8aaac4',
-  'Canned Goods': '#c4a09a',
-  'Condiments': '#c4aa7a',
-  'Dairy': '#b0c4b0',
-  'Frozen Goods': '#a0c4c4',
-  'Instant Noodles': '#c4b48a',
-  'Personal Care': '#c48ab4',
-  'Rice & Grains': '#8faa8f',
-  'Snacks': '#c48a8a',
-  'Others': '#aaaaaa',
+
+function getColor(name: string): string {
+  // Generate consistent color from category name
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 35%, 65%)`
 }
 
-function getColor(name: string) {
-  return categoryColors[name] || '#b08a8a'
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+function getInitials(name: string) { 
+  return name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() 
 }
 
 function ProductsPage() {
