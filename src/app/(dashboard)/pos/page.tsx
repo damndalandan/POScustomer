@@ -419,59 +419,71 @@ export default function POSPage() {
 
       {/* Checkout Modal */}
       {showCheckout && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <div style={{ width: '100%', maxWidth: '380px', borderRadius: '24px', padding: '20px', backgroundColor: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            <p style={{ fontWeight: 700, fontSize: '16px', color: '#3d2c2c', margin: '0 0 16px' }}>💳 Checkout</p>
-            <div style={{ backgroundColor: '#f9f6f5', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
-                <span style={{ color: '#9e8585' }}>Items</span><span style={{ color: '#3d2c2c' }}>{items.length}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 700 }}>
-                <span style={{ color: '#3d2c2c' }}>Total</span><span style={{ color: '#b08a8a' }}>₱{subtotal.toFixed(2)}</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-              {(['cash', 'gcash', 'utang'] as const).map(method => (
-                <button key={method} onClick={() => { setPosPaymentMethod(method); if (method !== 'utang') setPaymentMethod(method) }}
-                  style={{ flex: 1, padding: '10px 6px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px', backgroundColor: posPaymentMethod === method ? (method === 'utang' ? '#c47a7a' : '#b08a8a') : '#f5f0ee', color: posPaymentMethod === method ? 'white' : '#9e8585', border: `2px solid ${posPaymentMethod === method ? (method === 'utang' ? '#c47a7a' : '#b08a8a') : '#e8ddd9'}` }}>
-                  {method === 'cash' ? '💵 Cash' : method === 'gcash' ? '📱 GCash' : '😬 Utang'}
-                </button>
-              ))}
-            </div>
-            {posPaymentMethod === 'cash' && (
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED</label>
-                <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
-                {amount_tendered >= subtotal && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#f0f9f0', borderRadius: '10px' }}>
-                    <span style={{ fontSize: '13px', color: '#7aaa7a', fontWeight: 600 }}>Change</span>
-                    <span style={{ fontSize: '16px', fontWeight: 700, color: '#7aaa7a' }}>₱{change.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            {posPaymentMethod === 'gcash' && (
-              <div style={{ marginBottom: '14px' }}>
-                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED (GCash)</label>
-                <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box', marginBottom: '8px' }} />
-                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>GCASH REFERENCE NO. (optional)</label>
-                <input type="text" placeholder="e.g. 1234567890" value={gcash_reference} onChange={e => setGcashReference(e.target.value)}
-                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '14px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
-              </div>
-            )}
-            {/* Customer name */}
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>
-                CUSTOMER NAME {posPaymentMethod === 'utang' ? '*' : '(optional)'}
-              </label>
-              <input type="text" placeholder="e.g. Maria Santos" value={customerName} onChange={e => setCustomerName(e.target.value)}
-                style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${posPaymentMethod === 'utang' ? '#c47a7a' : '#e8ddd9'}`, backgroundColor: '#f5f0ee', fontSize: '14px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
+        <div className="fixed inset-0 z-[70] flex md:items-center md:justify-center bg-white md:bg-black/50 md:p-4">
+          <div className="w-full h-full md:h-auto md:max-w-[380px] bg-white md:rounded-[24px] flex flex-col p-4 md:p-5 md:shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            
+            {/* Mobile Header (Wizard style) */}
+            <div className="flex md:hidden items-center justify-between pb-4 mb-4 border-b border-[#e8ddd9] shrink-0">
+               <button onClick={() => setShowCheckout(false)} className="text-[#3d2c2c] font-bold text-[14px] flex items-center gap-1.5 px-3 py-1.5 bg-[#f9f6f5] rounded-xl border border-[#e8ddd9]">← Cart</button>
+               <span className="font-bold text-[#3d2c2c] text-[15px]">Payment</span>
+               <div className="w-[60px]" /> {/* Spacer to center the title */}
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setShowCheckout(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', backgroundColor: '#f5f0ee', color: '#9e8585', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
+            {/* Desktop Header */}
+            <p className="hidden md:block font-bold text-[16px] text-[#3d2c2c] mb-4 shrink-0">💳 Checkout</p>
+
+            <div className="flex-1 overflow-y-auto">
+              <div style={{ backgroundColor: '#f9f6f5', borderRadius: '12px', padding: '12px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                  <span style={{ color: '#9e8585' }}>Items</span><span style={{ color: '#3d2c2c' }}>{items.length}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 700 }}>
+                  <span style={{ color: '#3d2c2c' }}>Total</span><span style={{ color: '#b08a8a' }}>₱{subtotal.toFixed(2)}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                {(['cash', 'gcash', 'utang'] as const).map(method => (
+                  <button key={method} onClick={() => { setPosPaymentMethod(method); if (method !== 'utang') setPaymentMethod(method) }}
+                    style={{ flex: 1, padding: '10px 6px', borderRadius: '12px', cursor: 'pointer', fontWeight: 600, fontSize: '12px', backgroundColor: posPaymentMethod === method ? (method === 'utang' ? '#c47a7a' : '#b08a8a') : '#f5f0ee', color: posPaymentMethod === method ? 'white' : '#9e8585', border: `2px solid ${posPaymentMethod === method ? (method === 'utang' ? '#c47a7a' : '#b08a8a') : '#e8ddd9'}` }}>
+                    {method === 'cash' ? '💵 Cash' : method === 'gcash' ? '📱 GCash' : '😬 Utang'}
+                  </button>
+                ))}
+              </div>
+              {posPaymentMethod === 'cash' && (
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED</label>
+                  <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
+                  {amount_tendered >= subtotal && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '8px 12px', backgroundColor: '#f0f9f0', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '13px', color: '#7aaa7a', fontWeight: 600 }}>Change</span>
+                      <span style={{ fontSize: '16px', fontWeight: 700, color: '#7aaa7a' }}>₱{change.toFixed(2)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+              {posPaymentMethod === 'gcash' && (
+                <div style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>AMOUNT TENDERED (GCash)</label>
+                  <input type="number" placeholder="0.00" value={amount_tendered || ''} onChange={e => setAmountTendered(parseFloat(e.target.value) || 0)}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '16px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box', marginBottom: '8px' }} />
+                  <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>GCASH REFERENCE NO. (optional)</label>
+                  <input type="text" placeholder="e.g. 1234567890" value={gcash_reference} onChange={e => setGcashReference(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: '1.5px solid #e8ddd9', backgroundColor: '#f5f0ee', fontSize: '14px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
+                </div>
+              )}
+              {/* Customer name */}
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#9e8585', display: 'block', marginBottom: '6px' }}>
+                  CUSTOMER NAME {posPaymentMethod === 'utang' ? '*' : '(optional)'}
+                </label>
+                <input type="text" placeholder="e.g. Maria Santos" value={customerName} onChange={e => setCustomerName(e.target.value)}
+                  style={{ width: '100%', padding: '12px 14px', borderRadius: '12px', border: `1.5px solid ${posPaymentMethod === 'utang' ? '#c47a7a' : '#e8ddd9'}`, backgroundColor: '#f5f0ee', fontSize: '14px', color: '#3d2c2c', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            <div className="flex gap-2 shrink-0 md:mt-4 mt-2 border-t md:border-none border-[#e8ddd9] md:pt-0 pt-4">
+              <button onClick={() => setShowCheckout(false)} className="hidden md:block flex-1 padding-[14px] rounded-[12px] border-none bg-[#f5f0ee] text-[#9e8585] font-semibold text-[13px] cursor-pointer" style={{ padding: '14px', borderRadius: '12px', border: 'none', backgroundColor: '#f5f0ee', color: '#9e8585', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleCheckout} disabled={processing} style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: processing ? '#d4bfbb' : 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontWeight: 700, fontSize: '13px', cursor: processing ? 'not-allowed' : 'pointer' }}>
                 {processing ? 'Processing...' : '✅ Confirm Sale'}
               </button>
