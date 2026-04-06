@@ -24,6 +24,11 @@ body {
   overscroll-behavior-y: none; /* Prevents "pull to refresh" bounce */
 }
 
+/* Eliminate 300ms tap delay on mobile */
+a, button, [role="button"], input, select {
+  touch-action: manipulation;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4bfbb; border-radius: 4px; }
