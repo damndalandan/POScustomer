@@ -44,6 +44,7 @@ export default function POSPage() {
   const [showCheckout, setShowCheckout] = useState(false)
   const [showReceipt, setShowReceipt] = useState(false)
   const [showVoidConfirm, setShowVoidConfirm] = useState(false)
+  const [showMobileCart, setShowMobileCart] = useState(false)
   const [receipt, setReceipt] = useState<Receipt | null>(null)
   const [processing, setProcessing] = useState(false)
   const [toast, setToast] = useState('')
@@ -56,6 +57,9 @@ export default function POSPage() {
   const change = getChange()
 
   useEffect(() => { loadData() }, [])
+
+  // Auto-close mobile cart if empty
+  useEffect(() => { if (items.length === 0) setShowMobileCart(false) }, [items.length])
 
   async function loadData() {
     const [{ data: prods }, { data: cats }, { data: settings }] = await Promise.all([
@@ -261,18 +265,18 @@ export default function POSPage() {
                 )}
               </div>
             ) : viewMode === 'grid' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: '8px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '6px' }}>
                 {filtered.map(product => (
                   <button key={product.id} onPointerDown={e => { e.preventDefault(); addToCart(product) }} disabled={product.stock <= 0}
-                    style={{ backgroundColor: '#f9f6f5', border: '1.5px solid #e8ddd9', borderRadius: '12px', padding: '12px 10px', textAlign: 'left', cursor: product.stock <= 0 ? 'not-allowed' : 'pointer', opacity: product.stock <= 0 ? 0.5 : 1, display: 'flex', flexDirection: 'column', gap: '6px' }}
+                    style={{ backgroundColor: '#f9f6f5', border: '1.5px solid #e8ddd9', borderRadius: '12px', padding: '8px 6px', textAlign: 'center', cursor: product.stock <= 0 ? 'not-allowed' : 'pointer', opacity: product.stock <= 0 ? 0.5 : 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}
                     onMouseEnter={e => { if (product.stock > 0) (e.currentTarget as HTMLButtonElement).style.borderColor = '#b08a8a' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#e8ddd9' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: getColor(catName(product)) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 700, color: getColor(catName(product)) }}>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: getColor(catName(product)) + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 700, color: getColor(catName(product)), marginBottom: '2px' }}>
                       {getInitials(catName(product) || 'OT')}
                     </div>
-                    <RunningText text={product.name} className="text-[11px] font-semibold text-[#3d2c2c]" />
-                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: 0 }}>₱{product.selling_price.toFixed(2)}</p>
-                    <p style={{ fontSize: '10px', color: product.stock <= product.low_stock_threshold ? '#c47a7a' : '#9e8585', margin: 0 }}>
+                    <RunningText text={product.name} className="text-[11px] font-semibold text-[#3d2c2c] leading-tight" />
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: '1px 0' }}>₱{product.selling_price.toFixed(2)}</p>
+                    <p style={{ fontSize: '9px', color: product.stock <= product.low_stock_threshold ? '#c47a7a' : '#9e8585', margin: 0 }}>
                       {product.stock <= 0 ? '❌ Out' : `${product.stock} pcs`}
                     </p>
                   </button>
@@ -304,8 +308,17 @@ export default function POSPage() {
         </div>
 
         {/* RIGHT — Cart */}
-        <div className="w-full md:w-[280px] shrink-0 bg-white rounded-[16px] border border-[#e8ddd9] flex flex-col overflow-hidden min-h-[45vh] md:min-h-0 mt-1 md:mt-0">
-          <div style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+        <div className={`${showMobileCart ? 'fixed inset-0 z-[60] bg-[#f5f0ee] flex mt-0 rounded-none border-none pb-0' : 'hidden md:flex w-[280px] bg-white rounded-[16px] border border-[#e8ddd9] mt-0'} shrink-0 flex-col overflow-hidden min-h-[45vh] md:min-h-0`}>
+          
+          {/* Mobile Cart Header */}
+          <div className="flex md:hidden items-center justify-between p-4 border-b border-[#e8ddd9] bg-white shrink-0">
+             <button onClick={() => setShowMobileCart(false)} className="text-[#3d2c2c] font-bold text-[14px] flex items-center gap-1.5 px-3 py-1.5 bg-[#f9f6f5] rounded-xl border border-[#e8ddd9]">← Back</button>
+             <span className="font-bold text-[#3d2c2c] text-[15px]">Cart ({items.length})</span>
+             <button onClick={clearCart} className="text-[#c47a7a] font-bold text-[12px] px-3 py-1.5 bg-[#fdf0f0] rounded-xl border border-[#f5c4c4]">Clear All</button>
+          </div>
+
+          {/* Desktop Cart Header */}
+          <div className="hidden md:flex" style={{ padding: '10px 14px', borderBottom: '1px solid #e8ddd9', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, backgroundColor: 'white' }}>
             <p style={{ fontSize: '11px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>
               CART <span style={{ fontWeight: 400, color: '#b08a8a' }}>({items.length})</span>
             </p>
@@ -346,19 +359,40 @@ export default function POSPage() {
               </div>
             )}
           </div>
-          <div style={{ padding: '12px', borderTop: '1px solid #e8ddd9', flexShrink: 0 }}>
+          <div style={{ padding: '12px', borderTop: '1px solid #e8ddd9', flexShrink: 0, backgroundColor: 'white', paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', padding: '8px 10px', backgroundColor: '#f9f6f5', borderRadius: '10px' }}>
               <span style={{ fontSize: '12px', color: '#9e8585', fontWeight: 600 }}>TOTAL</span>
               <span style={{ fontSize: '20px', fontWeight: 700, color: '#3d2c2c' }}>₱{subtotal.toFixed(2)}</span>
             </div>
             {items.length > 0 && (
-              <button onClick={() => setShowCheckout(true)} style={{ width: '100%', padding: '13px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
+              <button onClick={() => setShowCheckout(true)} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #c4a09a, #b08a8a)', color: 'white', fontWeight: 700, fontSize: '14px', cursor: 'pointer' }}>
                 Proceed to Checkout →
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* Floating View Cart Button (Mobile Only) */}
+      {!showMobileCart && items.length > 0 && (
+        <div className="md:hidden fixed bottom-[90px] left-3 right-3 z-40">
+          <button 
+            onClick={() => setShowMobileCart(true)}
+            className="w-full bg-gradient-to-r from-[#c4a09a] to-[#b08a8a] text-white rounded-2xl p-4 shadow-[0_8px_30px_rgba(176,138,138,0.4)] flex justify-between items-center active:scale-[0.98] transition-transform border border-white/20"
+          >
+             <div className="flex items-center gap-3">
+               <div className="bg-white/25 text-white rounded-full w-8 h-8 flex items-center justify-center text-[13px] font-black shadow-inner">
+                 {items.length}
+               </div>
+               <span className="font-bold text-[15px] tracking-wide">View Cart</span>
+             </div>
+             <div className="flex flex-col items-end">
+               <span className="text-[9px] text-white/80 font-bold mb-0.5 tracking-wider">TOTAL</span>
+               <span className="font-black text-[17px] leading-none">₱{subtotal.toFixed(2)}</span>
+             </div>
+          </button>
+        </div>
+      )}
 
       {/* Void Confirmation Modal */}
       {showVoidConfirm && (
