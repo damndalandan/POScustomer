@@ -37,6 +37,14 @@ a, button, [role="button"], input, select {
   animation: marquee 10s linear infinite;
 }
 
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d4bfbb; border-radius: 4px; }
