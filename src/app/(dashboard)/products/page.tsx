@@ -348,7 +348,7 @@ function ProductsPage() {
           <div className="hidden md:flex overflow-x-auto flex-1 flex-col">
             <div className="min-w-[600px] flex-1 flex flex-col">
               {/* Table header */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 60px 60px 70px 120px', padding: '8px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 130px 60px 60px 70px 120px', padding: '8px 16px', backgroundColor: '#f9f6f5', borderBottom: '1px solid #e8ddd9', flexShrink: 0 }}>
                 {['PRODUCT', 'BARCODE', 'BUY', 'SELL', 'STOCK', 'ACTIONS'].map(h => (
                   <p key={h} style={{ fontSize: '10px', fontWeight: 700, color: '#9e8585', margin: 0, letterSpacing: '1px' }}>{h}</p>
                 ))}
@@ -365,7 +365,7 @@ function ProductsPage() {
             ) : filtered.map((product, i) => (
               <div key={product.id}
                 style={{
-                  display: 'grid', gridTemplateColumns: '1fr 80px 60px 60px 70px 120px',
+                  display: 'grid', gridTemplateColumns: '1fr 130px 60px 60px 70px 120px',
                   padding: '11px 16px', alignItems: 'center',
                   borderBottom: i < filtered.length - 1 ? '1px solid #f9f6f5' : 'none',
                   backgroundColor: 'white', opacity: product.is_active ? 1 : 0.5,
@@ -379,7 +379,7 @@ function ProductsPage() {
                   </p>
                 </div>
                 <p style={{ fontSize: '11px', color: '#9e8585', margin: 0 }}>
-                  {product.barcode ? '...' + product.barcode.slice(-5) : '—'}
+                  {product.barcode || '—'}
                 </p>
                 <p style={{ fontSize: '12px', color: '#9e8585', margin: 0 }}>₱{product.buying_price.toFixed(2)}</p>
                 <p style={{ fontSize: '13px', fontWeight: 700, color: '#b08a8a', margin: 0 }}>₱{product.selling_price.toFixed(2)}</p>
@@ -425,7 +425,7 @@ function ProductsPage() {
                       <RunningText text={product.name} className="text-[14px] font-bold text-[#3d2c2c]" />
                       <p className="text-[11px] text-[#9e8585] mt-0.5">
                         {(product as Product & { category?: { name: string } }).category?.name || 'Uncategorized'}
-                        {product.barcode && <span className="ml-1 text-[#c4aa7a] font-semibold">· {product.barcode.slice(-5)}</span>}
+                        {product.barcode && <span className="ml-1 text-[#c4aa7a] font-semibold">· {product.barcode}</span>}
                       </p>
                   </div>
                   <span className={`text-[10px] px-2 py-1 rounded-full font-bold flex-shrink-0 whitespace-nowrap ${product.stock <= 0 ? 'bg-[#fdf0f0] text-[#c47a7a]' : product.stock <= product.low_stock_threshold ? 'bg-[#fdf5f0] text-[#c4aa7a]' : 'bg-[#f0f9f0] text-[#7aaa7a]'}`}>
