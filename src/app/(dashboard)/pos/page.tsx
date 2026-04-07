@@ -116,14 +116,14 @@ export default function POSPage() {
 
   async function handleCheckout() {
     if (items.length === 0) return
-    if (payment_method === 'cash' && amount_tendered < subtotal) { showToast('⚠️ Amount tendered is less than total!'); return }
+    if (posPaymentMethod === 'cash' && amount_tendered < subtotal) { showToast('⚠️ Amount tendered is less than total!'); return }
     if (posPaymentMethod === 'utang' && !customerName.trim()) { showToast('⚠️ Customer name required for utang!'); return }
     setProcessing(true)
     const txnNumber = `TXN-${Date.now()}`
     const transaction = {
-      transaction_number: txnNumber, payment_method: posPaymentMethod === 'utang' ? 'cash' : payment_method, subtotal, total: subtotal,
-      amount_tendered: payment_method === 'cash' ? amount_tendered : subtotal,
-      change_amount: payment_method === 'cash' ? change : 0,
+      transaction_number: txnNumber, payment_method: posPaymentMethod === 'utang' ? 'cash' : posPaymentMethod, subtotal, total: subtotal,
+      amount_tendered: posPaymentMethod === 'cash' || posPaymentMethod === 'utang' ? amount_tendered || 0 : subtotal,
+      change_amount: posPaymentMethod === 'cash' ? change : 0,
       status: posPaymentMethod === 'utang' ? 'held' : 'completed',
       notes: customerName ? `Customer: ${customerName}` : null,
       served_by: user?.id || null,
@@ -165,7 +165,7 @@ export default function POSPage() {
           }
         }
       } else {
-        await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: payment_method === 'gcash' ? gcash_reference : undefined })
+        await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: posPaymentMethod === 'gcash' ? gcash_reference : undefined })
       }
 
       // Build receipt
@@ -173,8 +173,8 @@ export default function POSPage() {
         transaction_number: txnNumber,
         items: items.map(i => ({ product_name: i.product_name, quantity: i.quantity, selling_price: i.selling_price, subtotal: i.subtotal })),
         subtotal,
-        payment_method,
-        amount_tendered: amount_tendered > 0 ? amount_tendered : subtotal,
+        payment_method: posPaymentMethod === 'utang' ? 'cash' : posPaymentMethod,
+        amount_tendered: posPaymentMethod === 'cash' || posPaymentMethod === 'utang' ? amount_tendered || 0 : subtotal,
         change_amount: posPaymentMethod === 'cash' ? change : 0,
         gcash_reference: posPaymentMethod === 'gcash' ? gcash_reference : undefined,
         served_by: user?.full_name || user?.username || 'Cashier',
@@ -187,7 +187,7 @@ export default function POSPage() {
       setShowReceipt(true)
       loadData()
     } catch {
-      await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: payment_method === 'gcash' ? gcash_reference : undefined })
+      await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: posPaymentMethod === 'gcash' ? gcash_reference : undefined })
       showToast('⚠️ Saved offline.')
       clearCart(); setShowCheckout(false)
     }
