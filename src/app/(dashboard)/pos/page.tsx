@@ -216,6 +216,20 @@ export default function POSPage() {
       loadData()
     } catch {
       await addToQueue('transaction', { transaction, items: txnItems, gcash_reference: posPaymentMethod === 'gcash' ? gcash_reference : undefined })
+      
+      // Optimistic Stock Deduction Offline
+      const cachedProds = await getCachedProducts()
+      if (cachedProds) {
+        const prods = cachedProds as Product[]
+        const updatedProds = prods.map(p => {
+          const soldItem = txnItems.find(i => i.product_id === p.id)
+          if (soldItem) return { ...p, stock: Math.max(0, p.stock - soldItem.quantity) }
+          return p
+        })
+        await cacheProducts(updatedProds)
+        setProducts(updatedProds)
+      }
+
       showToast('⚠️ Saved offline.')
       clearCart(); setShowCheckout(false)
     }

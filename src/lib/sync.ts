@@ -57,6 +57,30 @@ async function syncTransaction(data: unknown) {
       p_quantity: item.quantity,
     })
   }
+
+  // Handle Offline Utang Checkout
+  if (transaction.status === 'held' && typeof transaction.notes === 'string' && transaction.notes.startsWith('Customer: ')) {
+    const customerName = transaction.notes.replace('Customer: ', '').trim()
+    const subtotal = transaction.total as number
+
+    const { data: existingUtang } = await supabase
+      .from('utang').select('*').ilike('customer_name', customerName).single()
+    
+    if (existingUtang) {
+      const newTotal = existingUtang.total_amount + subtotal
+      const newStatus = existingUtang.paid_amount >= newTotal ? 'paid' : existingUtang.paid_amount > 0 ? 'partial' : 'unpaid'
+      await supabase.from('utang').update({ total_amount: newTotal, status: newStatus }).eq('id', existingUtang.id)
+      await supabase.from('utang_items').insert({ utang_id: existingUtang.id, amount: subtotal, notes: `POS - ${transaction.transaction_number}` })
+    } else {
+      const { data: newUtang } = await supabase.from('utang').insert({
+        customer_name: customerName, total_amount: subtotal,
+        paid_amount: 0, balance: subtotal, status: 'unpaid', created_by: transaction.served_by,
+      }).select().single()
+      if (newUtang) {
+        await supabase.from('utang_items').insert({ utang_id: newUtang.id, amount: subtotal, notes: `POS - ${transaction.transaction_number}` })
+      }
+    }
+  }
 }
 
 async function syncRestock(data: unknown) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import { CartItem } from '@/types'
 
 interface CartStore {
@@ -19,7 +20,9 @@ interface CartStore {
   getChange: () => number
 }
 
-export const useCartStore = create<CartStore>((set, get) => ({
+export const useCartStore = create<CartStore>()(
+  persist(
+    (set, get) => ({
   items: [],
   payment_method: 'cash',
   amount_tendered: 0,
@@ -73,4 +76,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
     const tendered = get().amount_tendered
     return Math.max(0, tendered - subtotal)
   },
-}))
+    }),
+    {
+      name: 'chiara-cart-storage',
+    }
+  )
+)
