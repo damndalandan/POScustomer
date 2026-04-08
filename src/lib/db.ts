@@ -15,18 +15,27 @@ interface ChiaraDB {
     key: string
     value: { key: string; data: unknown; cached_at: string }
   }
+  categories_cache: {
+    key: string
+    value: { key: string; data: unknown; cached_at: string }
+  }
 }
 
 let db: IDBPDatabase<ChiaraDB> | null = null
 
 export async function getDB() {
   if (db) return db
-  db = await openDB<ChiaraDB>('chiara-store-pos', 1, {
-    upgrade(db) {
-      const queueStore = db.createObjectStore('offline_queue', { keyPath: 'id' })
-      queueStore.createIndex('by-synced', 'synced')
-      db.createObjectStore('products_cache', { keyPath: 'key' })
-      db.createObjectStore('settings_cache', { keyPath: 'key' })
+  db = await openDB<ChiaraDB>('chiara-store-pos', 2, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        const queueStore = db.createObjectStore('offline_queue', { keyPath: 'id' })
+        queueStore.createIndex('by-synced', 'synced')
+        db.createObjectStore('products_cache', { keyPath: 'key' })
+        db.createObjectStore('settings_cache', { keyPath: 'key' })
+      }
+      if (oldVersion < 2) {
+        db.createObjectStore('categories_cache', { keyPath: 'key' })
+      }
     },
   })
   return db
@@ -84,5 +93,16 @@ export async function cacheSettings(settings: unknown): Promise<void> {
 export async function getCachedSettings(): Promise<unknown | null> {
   const db = await getDB()
   const cached = await db.get('settings_cache', 'store_settings')
+  return cached ? cached.data : null
+}
+
+export async function cacheCategories(categories: unknown): Promise<void> {
+  const db = await getDB()
+  await db.put('categories_cache', { key: 'all_categories', data: categories, cached_at: new Date().toISOString() })
+}
+
+export async function getCachedCategories(): Promise<unknown | null> {
+  const db = await getDB()
+  const cached = await db.get('categories_cache', 'all_categories')
   return cached ? cached.data : null
 }

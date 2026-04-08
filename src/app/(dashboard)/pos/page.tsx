@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useCartStore } from '@/store/cartStore'
 import { getStoredUser } from '@/lib/auth'
-import { addToQueue } from '@/lib/db'
+import { addToQueue, cacheProducts, getCachedProducts, cacheCategories, getCachedCategories, cacheSettings, getCachedSettings } from '@/lib/db'
 import { syncOfflineQueue } from '@/lib/sync'
 import { Product } from '@/types'
 import BarcodeScanner from '@/components/BarcodeScanner'
@@ -62,14 +62,42 @@ export default function POSPage() {
   useEffect(() => { if (items.length === 0) setShowMobileCart(false) }, [items.length])
 
   async function loadData() {
-    const [{ data: prods }, { data: cats }, { data: settings }] = await Promise.all([
-      supabase.from('products').select('*, category:categories(name)').eq('is_active', true).order('name'),
-      supabase.from('categories').select('*').order('name'),
-      supabase.from('store_settings').select('store_name, receipt_footer').single(),
-    ])
-    if (prods) setProducts(prods)
-    if (cats) setCategories(cats)
-    if (settings) setStoreSettings({ store_name: settings.store_name || 'Chiara Store', receipt_footer: settings.receipt_footer || 'Thank you!' })
+    try {
+      if (!navigator.onLine) throw new Error('Offline')
+
+      const [{ data: prods, error: pErr }, { data: cats, error: cErr }, { data: settings, error: sErr }] = await Promise.all([
+        supabase.from('products').select('*, category:categories(name)').eq('is_active', true).order('name'),
+        supabase.from('categories').select('*').order('name'),
+        supabase.from('store_settings').select('store_name, receipt_footer').single(),
+      ])
+
+      if (pErr || cErr || sErr) throw new Error('Network Database Error')
+
+      if (prods) {
+        setProducts(prods)
+        await cacheProducts(prods)
+      }
+      if (cats) {
+        setCategories(cats)
+        await cacheCategories(cats)
+      }
+      if (settings) {
+        setStoreSettings({ store_name: settings.store_name || 'Chiara Store', receipt_footer: settings.receipt_footer || 'Thank you!' })
+        await cacheSettings(settings)
+      }
+    } catch (err) {
+      showToast('⚠️ Offline Mode: Using local catalog')
+      const cachedProds = await getCachedProducts()
+      const cachedCats = await getCachedCategories()
+      const cachedSets = await getCachedSettings()
+
+      if (cachedProds) setProducts(cachedProds as Product[])
+      if (cachedCats) setCategories(cachedCats as { id: string; name: string }[])
+      if (cachedSets) setStoreSettings({
+        store_name: (cachedSets as any).store_name || 'Chiara Store',
+        receipt_footer: (cachedSets as any).receipt_footer || 'Thank you!'
+      })
+    }
   }
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500) }
