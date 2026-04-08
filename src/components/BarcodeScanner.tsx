@@ -13,6 +13,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
   const streamRef = useRef<MediaStream | null>(null)
   const animFrameRef = useRef<number | null>(null)
   const readerRef = useRef<BrowserMultiFormatReader | null>(null)
+  const hasScannedRef = useRef(false)
   const [error, setError] = useState('')
   const [detected, setDetected] = useState(false)
   const [useNative, setUseNative] = useState(false)
@@ -37,10 +38,11 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
     })
 
     const scan = async () => {
-      if (!videoRef.current || detected) return
+      if (!videoRef.current || hasScannedRef.current) return
       try {
         const barcodes = await detector.detect(videoRef.current)
-        if (barcodes.length > 0) {
+        if (barcodes.length > 0 && !hasScannedRef.current) {
+          hasScannedRef.current = true
           setDetected(true)
           stopAll()
           onScan(barcodes[0].rawValue)
@@ -51,7 +53,7 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
     }
 
     animFrameRef.current = requestAnimationFrame(scan)
-  }, [detected, onScan, stopAll])
+  }, [onScan, stopAll])
 
   // ZXing fallback
   const startZXing = useCallback(async (stream: MediaStream) => {
@@ -61,14 +63,15 @@ export default function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps)
 
     try {
       await reader.decodeFromStream(stream, videoRef.current, (result, err) => {
-        if (result && !detected) {
+        if (result && !hasScannedRef.current) {
+          hasScannedRef.current = true
           setDetected(true)
           stopAll()
           onScan(result.getText())
         }
       })
     } catch (err) {}
-  }, [detected, onScan, stopAll])
+  }, [onScan, stopAll])
 
   useEffect(() => {
     let cancelled = false
