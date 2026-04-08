@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div style={{
-      height: '100dvh', // Use dvh (dynamic viewport height) to fix mobile browser bar clipping
+      height: '100%', // Fills the fixed body container to prevent scroll shifting
       display: 'flex',
       flexDirection: 'column',
       backgroundColor: '#f5f0ee',
